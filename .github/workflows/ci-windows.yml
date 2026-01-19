@@ -1,0 +1,53 @@
+name: ci-windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "Private source ref/commit to test/build"
+        required: true
+        type: string
+      artifact_name:
+        description: "Artifact name"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout private source via SSH deploy key (read-only)
+        uses: actions/checkout@v4
+        with:
+          repository: FuChuZhao/aw-desktop-allin-source
+          ref: ${{ inputs.source_ref }}
+          ssh-key: ${{ secrets.SOURCE_REPO_SSH_KEY }}
+          path: source
+          submodules: recursive
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: CI (tests + screenshots + build)
+        shell: pwsh
+        working-directory: source
+        run: |
+          ./tool/ci/ci_windows.ps1 -OutDir dist -ArtifactDir ci_artifacts
+
+      - name: Upload artifact (minimal exposure)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: |
+            source/dist/**
+            source/ci_artifacts/**
+          retention-days: 1
+
