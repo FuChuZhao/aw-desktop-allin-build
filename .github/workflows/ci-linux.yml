@@ -36,7 +36,8 @@ jobs:
             cmake \
             ninja-build \
             pkg-config \
-            libgtk-3-dev
+            libgtk-3-dev \
+            xvfb
 
           # tray_manager needs an AppIndicator implementation. Package names vary
           # across Ubuntu versions.
@@ -64,4 +65,3 @@ jobs:
             source/dist/**
             source/ci_artifacts/**
           retention-days: 1
-
